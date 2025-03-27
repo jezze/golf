@@ -92,7 +92,7 @@ void game_stop(void)
 void game_init(void)
 {
 
-    gfx_init();
+    gfx_init(SCREEN_WIDTH, SCREEN_HEIGHT);
 
     camera.x = 2300;
     camera.y = 4150;

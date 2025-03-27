@@ -6,8 +6,6 @@
 #include "game.h"
 #include "gfx.h"
 
-#define SCREEN_WIDTH 1920
-#define SCREEN_HEIGHT 1080
 #define TYPE_NONE 0
 #define TYPE_FAIRWAY 1
 #define TYPE_GREEN 2
@@ -112,18 +110,18 @@ static void clearfield(unsigned int *pixels)
 
 }
 
-static void paintpixel(unsigned int *pixels, unsigned int x, unsigned int y, float cx, float cy, int height)
+static void paintpixel(unsigned int *pixels, unsigned int x, unsigned int y, unsigned int w, unsigned int h, float cx, float cy, int height)
 {
 
-    int h;
+    int i;
 
     if (height < 0)
         height = 0;
 
-    for (h = height; h < heightbuffer[x]; h++)
+    for (i = height; i < heightbuffer[x]; i++)
     {
 
-        unsigned int offset = (h * SCREEN_WIDTH) + x;
+        unsigned int offset = (i * w) + x;
 
         pixels[offset] = getcolor(cx, cy);
 
@@ -166,7 +164,7 @@ void gfx_render(struct camera *camera)
 
     clearfield(fieldpixels);
 
-    for (y = fieldrect.h - 1; y > 0; y--)
+    for (y = fieldrect.h + 255; y > 0; y--)
     {
 
         float z = zfraction / y;
@@ -188,7 +186,7 @@ void gfx_render(struct camera *camera)
             if (height < heightbuffer[x])
             {
 
-                paintpixel(fieldpixels, x, y, cx, cy, height);
+                paintpixel(fieldpixels, x, y, fieldrect.w, fieldrect.w, cx, cy, height);
 
                 heightbuffer[x] = height;
 
@@ -323,7 +321,7 @@ void gfx_input(void)
 
 }
 
-void gfx_init(void)
+void gfx_init(unsigned int w, unsigned int h)
 {
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -334,7 +332,7 @@ void gfx_init(void)
 
     }
 
-    window = SDL_CreateWindow(GAME_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow(GAME_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w, h, SDL_WINDOW_SHOWN);
 
     if (!window)
     {
@@ -377,7 +375,7 @@ void gfx_init(void)
     }
 
     depthpixels = (unsigned char *)depthimg->pixels;
-    field = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
+    field = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, w, h);
 
     if (!field)
     {
@@ -389,15 +387,15 @@ void gfx_init(void)
 
     skyrect.x = 0;
     skyrect.y = 0;
-    skyrect.w = SCREEN_WIDTH;
-    skyrect.h = SCREEN_HEIGHT / 8;
+    skyrect.w = w;
+    skyrect.h = h / 8;
     fieldrect.x = 0;
     fieldrect.y = 0;
-    fieldrect.w = SCREEN_WIDTH;
-    fieldrect.h = SCREEN_HEIGHT - skyrect.h;
+    fieldrect.w = w;
+    fieldrect.h = h - skyrect.h;
     drect.x = 0;
     drect.y = skyrect.h;
-    drect.w = SCREEN_WIDTH;
+    drect.w = w;
     drect.h = fieldrect.h;
 
 }
