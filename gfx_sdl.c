@@ -33,12 +33,11 @@ static SDL_Renderer *renderer;
 static SDL_Surface *layoutimg;
 static SDL_Surface *depthimg;
 static SDL_Texture *field;
-static SDL_Rect srect;
+static SDL_Rect skyrect;
+static SDL_Rect fieldrect;
 static SDL_Rect drect;
 static unsigned char *layoutpixels;
 static unsigned char *depthpixels;
-static unsigned int horizon;
-static unsigned int fieldheight;
 static int heightbuffer[SCREEN_WIDTH];
 
 static unsigned int getcolor(float cx, float cy)
@@ -108,7 +107,7 @@ static void clearfield(unsigned int *pixels)
 
     unsigned int i;
 
-    for (i = 0; i < SCREEN_WIDTH * fieldheight; i++)
+    for (i = 0; i < fieldrect.w * fieldrect.h; i++)
         pixels[i] = colors[0];
 
 }
@@ -132,87 +131,6 @@ static void paintpixel(unsigned int *pixels, unsigned int x, unsigned int y, flo
 
 }
 
-void gfx_init(void)
-{
-
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
-    {
-
-        printf("SDL could not be initialized! SDL_Error: %s\n", SDL_GetError());
-        exit(EXIT_FAILURE);
-
-    }
-
-    window = SDL_CreateWindow(GAME_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-
-    if (!window)
-    {
-
-        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-        exit(EXIT_FAILURE);
-
-    }
-
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-
-    if (!renderer)
-    {
-
-        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
-        exit(EXIT_FAILURE);
-
-    }
-
-    layoutimg = IMG_Load("assets/layout.png");
-
-    if (!layoutimg)
-    {
-
-        printf("Layout image could not be created! SDL_Error: %s\n", SDL_GetError());
-        exit(EXIT_FAILURE);
-
-    }
-
-    layoutpixels = (unsigned char *)layoutimg->pixels;
-
-    depthimg = IMG_Load("assets/depth.png");
-
-    if (!depthimg)
-    {
-
-        printf("Depth image could not be created! SDL_Error: %s\n", SDL_GetError());
-        exit(EXIT_FAILURE);
-
-    }
-
-    depthpixels = (unsigned char *)depthimg->pixels;
-    field = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
-
-    if (!field)
-    {
-
-        printf("Texture could not be created! SDL_Error: %s\n", SDL_GetError());
-        exit(EXIT_FAILURE);
-
-    }
-
-    horizon = SCREEN_WIDTH / 8;
-    fieldheight = SCREEN_HEIGHT - horizon;
-
-}
-
-void gfx_destroy(void)
-{
-
-    SDL_DestroyTexture(field);
-    SDL_FreeSurface(layoutimg);
-    SDL_FreeSurface(depthimg);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-
-}
-
 void gfx_render(struct camera *camera)
 {
 
@@ -233,19 +151,10 @@ void gfx_render(struct camera *camera)
     float cy;
     int rc;
 
-    srect.x = 0;
-    srect.y = 0;
-    srect.w = SCREEN_WIDTH;
-    srect.h = fieldheight;
-    drect.x = 0;
-    drect.y = horizon;
-    drect.w = SCREEN_WIDTH;
-    drect.h = fieldheight;
+    for (x = 0; x < fieldrect.w; x++)
+        heightbuffer[x] = fieldrect.h;
 
-    for (x = 0; x < SCREEN_WIDTH; x++)
-        heightbuffer[x] = fieldheight;
-
-    rc = SDL_LockTexture(field, &srect, (void **)&fieldpixels, &pitch);
+    rc = SDL_LockTexture(field, &fieldrect, (void **)&fieldpixels, &pitch);
 
     if (rc)
     {
@@ -257,7 +166,7 @@ void gfx_render(struct camera *camera)
 
     clearfield(fieldpixels);
 
-    for (y = fieldheight - 1; y > 0; y--)
+    for (y = fieldrect.h - 1; y > 0; y--)
     {
 
         float z = zfraction / y;
@@ -266,12 +175,12 @@ void gfx_render(struct camera *camera)
         ply = ( sinphi * z) - (cosphi * z);
         prx = ( cosphi * z) - (sinphi * z);
         pry = (-sinphi * z) - (cosphi * z);
-        dx = (prx - plx) / (float)SCREEN_WIDTH;
-        dy = (pry - ply) / (float)SCREEN_WIDTH;
+        dx = (prx - plx) / (float)fieldrect.w;
+        dy = (pry - ply) / (float)fieldrect.w;
         cx = plx + camera->x;
         cy = ply + camera->y;
 
-        for (x = 0; x < SCREEN_WIDTH; x++)
+        for (x = 0; x < fieldrect.w; x++)
         {
 
             int height = y - getheight(cx, cy) / 2;
@@ -295,7 +204,7 @@ void gfx_render(struct camera *camera)
     SDL_UnlockTexture(field);
     SDL_SetRenderDrawColor(renderer, 0x40, 0x80, 0xA0, 0xFF);
     SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, field, &srect, &drect);
+    SDL_RenderCopy(renderer, field, &fieldrect, &drect);
     SDL_RenderPresent(renderer);
     SDL_Delay(16);
 
@@ -411,6 +320,97 @@ void gfx_input(void)
         }
 
     }
+
+}
+
+void gfx_init(void)
+{
+
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    {
+
+        printf("SDL could not be initialized! SDL_Error: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
+
+    }
+
+    window = SDL_CreateWindow(GAME_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+
+    if (!window)
+    {
+
+        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
+
+    }
+
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+    if (!renderer)
+    {
+
+        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
+
+    }
+
+    layoutimg = IMG_Load("assets/layout.png");
+
+    if (!layoutimg)
+    {
+
+        printf("Layout image could not be created! SDL_Error: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
+
+    }
+
+    layoutpixels = (unsigned char *)layoutimg->pixels;
+
+    depthimg = IMG_Load("assets/depth.png");
+
+    if (!depthimg)
+    {
+
+        printf("Depth image could not be created! SDL_Error: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
+
+    }
+
+    depthpixels = (unsigned char *)depthimg->pixels;
+    field = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+    if (!field)
+    {
+
+        printf("Texture could not be created! SDL_Error: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
+
+    }
+
+    skyrect.x = 0;
+    skyrect.y = 0;
+    skyrect.w = SCREEN_WIDTH;
+    skyrect.h = SCREEN_HEIGHT / 8;
+    fieldrect.x = 0;
+    fieldrect.y = 0;
+    fieldrect.w = SCREEN_WIDTH;
+    fieldrect.h = SCREEN_HEIGHT - skyrect.h;
+    drect.x = 0;
+    drect.y = skyrect.h;
+    drect.w = SCREEN_WIDTH;
+    drect.h = fieldrect.h;
+
+}
+
+void gfx_destroy(void)
+{
+
+    SDL_DestroyTexture(field);
+    SDL_FreeSurface(layoutimg);
+    SDL_FreeSurface(depthimg);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 
 }
 
