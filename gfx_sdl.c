@@ -415,7 +415,7 @@ void gfx_init(unsigned int w, unsigned int h)
 
     }
 
-    horizon = h / 8;
+    horizon = h / 4;
     fieldrect.x = 0;
     fieldrect.y = 0;
     fieldrect.w = w;
