@@ -32,9 +32,12 @@ static SDL_Renderer *renderer;
 static SDL_Surface *layoutimg;
 static SDL_Surface *depthimg;
 static SDL_Texture *field;
+static SDL_Texture *minimap;
 static SDL_Rect fieldrect;
+static SDL_Rect minimaprect;
 static SDL_Rect drect;
 static int heightbuffer[SCREEN_WIDTH];
+static unsigned int horizon;
 
 static unsigned int getcolor(struct map *map, float cx, float cy)
 {
@@ -162,10 +165,10 @@ void renderfield(struct camera *camera, struct map *map)
 
     clearfield(fieldpixels);
 
-    for (y = fieldrect.h + 255; y > 0; y--)
+    for (y = fieldrect.h + 255; y > horizon; y--)
     {
 
-        float z = zfraction / y;
+        float z = zfraction / (y - horizon);
 
         plx = (-cosphi * z) - (sinphi * z);
         ply = ( sinphi * z) - (cosphi * z);
@@ -202,12 +205,18 @@ void renderfield(struct camera *camera, struct map *map)
 
 }
 
+void renderminimap(struct map *map)
+{
+
+}
+
 void gfx_render(struct camera *camera, struct map *map)
 {
 
     SDL_SetRenderDrawColor(renderer, 0x40, 0x80, 0xA0, 0xFF);
     SDL_RenderClear(renderer);
     renderfield(camera, map);
+    renderminimap(map);
     SDL_RenderPresent(renderer);
     SDL_Delay(16);
 
@@ -396,10 +405,25 @@ void gfx_init(unsigned int w, unsigned int h)
 
     }
 
+    minimap = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 140, 200);
+
+    if (!minimap)
+    {
+
+        printf("Texture could not be created! SDL_Error: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
+
+    }
+
+    horizon = h / 8;
     fieldrect.x = 0;
     fieldrect.y = 0;
     fieldrect.w = w;
     fieldrect.h = h;
+    minimaprect.x = w - 140 - 20;
+    minimaprect.y = h - 200 - 20;
+    minimaprect.w = 140;
+    minimaprect.h = 200;
     drect.x = 0;
     drect.y = 0;
     drect.w = w;
@@ -411,6 +435,7 @@ void gfx_destroy(void)
 {
 
     SDL_DestroyTexture(field);
+    SDL_DestroyTexture(minimap);
     SDL_FreeSurface(layoutimg);
     SDL_FreeSurface(depthimg);
     SDL_DestroyRenderer(renderer);
