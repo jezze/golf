@@ -200,16 +200,19 @@ void renderfield(struct camera *camera, struct map *map)
 
 }
 
-void renderminimap(struct map *map)
+void renderminimap(struct camera *camera, struct map *map)
 {
 
-    /*
     unsigned int x;
     unsigned int y;
-    */
     unsigned int *pixels;
     int pitch;
     SDL_Rect targetrect;
+    unsigned int scale = 20;
+    float cx = 0;
+    float cy = 0;
+    float dx = scale;
+    float dy = scale;
 
     targetrect.x = SCREEN_WIDTH - minimaprect.w - 20;
     targetrect.y = SCREEN_HEIGHT - minimaprect.h - 20;
@@ -217,6 +220,26 @@ void renderminimap(struct map *map)
     targetrect.h = minimaprect.h;
 
     SDL_LockTexture(minimap, &minimaprect, (void **)&pixels, &pitch);
+
+    for (y = 0; y < minimaprect.h; y++)
+    {
+
+        for (x = 0; x < minimaprect.w; x++)
+        {
+
+            unsigned int offset = (y * minimaprect.w) + x;
+
+            pixels[offset] = getcolor(map, cx, cy);
+
+            cx += dx;
+
+        }
+
+        cx = 0;
+        cy += dy;
+
+    }
+
     SDL_UnlockTexture(minimap);
     SDL_RenderCopy(renderer, minimap, &minimaprect, &targetrect);
 
@@ -228,7 +251,7 @@ void gfx_render(struct camera *camera, struct map *map)
     SDL_SetRenderDrawColor(renderer, 0x40, 0x80, 0xA0, 0xFF);
     SDL_RenderClear(renderer);
     renderfield(camera, map);
-    renderminimap(map);
+    renderminimap(camera, map);
     SDL_RenderPresent(renderer);
     SDL_Delay(16);
 
