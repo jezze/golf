@@ -12,3 +12,5 @@ struct camera
     float distance;
 
 };
+
+void camera_init(struct camera *camera, float x, float y, float z, float distance);

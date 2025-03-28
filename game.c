@@ -94,14 +94,10 @@ void game_stop(void)
 void game_init(void)
 {
 
-    gfx_init(SCREEN_WIDTH, SCREEN_HEIGHT);
+    camera_init(&camera, 2300.0, 4150.0, 200.0, 800.0);
     map_init(&map, "assets/layout.png", "assets/depth.png");
+    gfx_init(SCREEN_WIDTH, SCREEN_HEIGHT);
     gfx_loadmap(&map);
-
-    camera.x = 2300;
-    camera.y = 4150;
-    camera.z = 200;
-    camera.distance = 800;
 
 }
 
