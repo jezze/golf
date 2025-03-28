@@ -127,7 +127,7 @@ static void paintpixel(unsigned int *pixels, struct map *map, unsigned int x, un
 
 }
 
-void gfx_render(struct camera *camera, struct map *map)
+void renderfield(struct camera *camera, struct map *map)
 {
 
     float zfraction = (camera->distance * camera->z);
@@ -198,9 +198,16 @@ void gfx_render(struct camera *camera, struct map *map)
     }
 
     SDL_UnlockTexture(field);
+    SDL_RenderCopy(renderer, field, &fieldrect, &drect);
+
+}
+
+void gfx_render(struct camera *camera, struct map *map)
+{
+
     SDL_SetRenderDrawColor(renderer, 0x40, 0x80, 0xA0, 0xFF);
     SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, field, &fieldrect, &drect);
+    renderfield(camera, map);
     SDL_RenderPresent(renderer);
     SDL_Delay(16);
 
