@@ -35,7 +35,6 @@ static SDL_Texture *field;
 static SDL_Texture *minimap;
 static SDL_Rect fieldrect;
 static SDL_Rect minimaprect;
-static SDL_Rect drect;
 static int heightbuffer[SCREEN_WIDTH];
 static unsigned int horizon;
 
@@ -136,9 +135,9 @@ void renderfield(struct camera *camera, struct map *map)
     float zfraction = (camera->distance * camera->z);
     float sinphi = sin(camera->angle);
     float cosphi = cos(camera->angle);
-    unsigned int *fieldpixels;
     unsigned int x;
     unsigned int y;
+    unsigned int *pixels;
     int pitch;
     float plx;
     float ply;
@@ -148,22 +147,18 @@ void renderfield(struct camera *camera, struct map *map)
     float dy;
     float cx;
     float cy;
-    int rc;
+    SDL_Rect targetrect;
+
+    targetrect.x = 0;
+    targetrect.y = 0;
+    targetrect.w = fieldrect.w;
+    targetrect.h = fieldrect.h;
 
     for (x = 0; x < fieldrect.w; x++)
         heightbuffer[x] = fieldrect.h;
 
-    rc = SDL_LockTexture(field, &fieldrect, (void **)&fieldpixels, &pitch);
-
-    if (rc)
-    {
-
-        printf("Lock failed! SDL_Error: %s\n", SDL_GetError());
-        exit(EXIT_FAILURE);
-
-    }
-
-    clearfield(fieldpixels);
+    SDL_LockTexture(field, &fieldrect, (void **)&pixels, &pitch);
+    clearfield(pixels);
 
     for (y = fieldrect.h + 255; y > horizon; y--)
     {
@@ -187,7 +182,7 @@ void renderfield(struct camera *camera, struct map *map)
             if (height < heightbuffer[x])
             {
 
-                paintpixel(fieldpixels, map, x, y, fieldrect.w, fieldrect.h, cx, cy, height);
+                paintpixel(pixels, map, x, y, fieldrect.w, fieldrect.h, cx, cy, height);
 
                 heightbuffer[x] = height;
 
@@ -201,12 +196,29 @@ void renderfield(struct camera *camera, struct map *map)
     }
 
     SDL_UnlockTexture(field);
-    SDL_RenderCopy(renderer, field, &fieldrect, &drect);
+    SDL_RenderCopy(renderer, field, &fieldrect, &targetrect);
 
 }
 
 void renderminimap(struct map *map)
 {
+
+    /*
+    unsigned int x;
+    unsigned int y;
+    */
+    unsigned int *pixels;
+    int pitch;
+    SDL_Rect targetrect;
+
+    targetrect.x = SCREEN_WIDTH - minimaprect.w - 20;
+    targetrect.y = SCREEN_HEIGHT - minimaprect.h - 20;
+    targetrect.w = minimaprect.w;
+    targetrect.h = minimaprect.h;
+
+    SDL_LockTexture(minimap, &minimaprect, (void **)&pixels, &pitch);
+    SDL_UnlockTexture(minimap);
+    SDL_RenderCopy(renderer, minimap, &minimaprect, &targetrect);
 
 }
 
@@ -367,6 +379,16 @@ void gfx_loadmap(struct map *map)
 void gfx_init(unsigned int w, unsigned int h)
 {
 
+    horizon = h / 4;
+    fieldrect.x = 0;
+    fieldrect.y = 0;
+    fieldrect.w = w;
+    fieldrect.h = h;
+    minimaprect.x = 0;
+    minimaprect.y = 0;
+    minimaprect.w = 200;
+    minimaprect.h = 240;
+
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
 
@@ -395,7 +417,7 @@ void gfx_init(unsigned int w, unsigned int h)
 
     }
 
-    field = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, w, h);
+    field = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, fieldrect.w, fieldrect.h);
 
     if (!field)
     {
@@ -405,7 +427,7 @@ void gfx_init(unsigned int w, unsigned int h)
 
     }
 
-    minimap = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 140, 200);
+    minimap = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, minimaprect.w, minimaprect.h);
 
     if (!minimap)
     {
@@ -414,20 +436,6 @@ void gfx_init(unsigned int w, unsigned int h)
         exit(EXIT_FAILURE);
 
     }
-
-    horizon = h / 4;
-    fieldrect.x = 0;
-    fieldrect.y = 0;
-    fieldrect.w = w;
-    fieldrect.h = h;
-    minimaprect.x = w - 140 - 20;
-    minimaprect.y = h - 200 - 20;
-    minimaprect.w = 140;
-    minimaprect.h = 200;
-    drect.x = 0;
-    drect.y = 0;
-    drect.w = w;
-    drect.h = h;
 
 }
 
