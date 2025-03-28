@@ -31,7 +31,6 @@ static SDL_Renderer *renderer;
 static SDL_Surface *layoutimg;
 static SDL_Surface *depthimg;
 static SDL_Texture *field;
-static SDL_Rect skyrect;
 static SDL_Rect fieldrect;
 static SDL_Rect drect;
 static unsigned char *layoutpixels;
@@ -173,20 +172,20 @@ void gfx_render(struct camera *camera)
         ply = ( sinphi * z) - (cosphi * z);
         prx = ( cosphi * z) - (sinphi * z);
         pry = (-sinphi * z) - (cosphi * z);
-        dx = (prx - plx) / (float)fieldrect.w;
-        dy = (pry - ply) / (float)fieldrect.w;
+        dx = (prx - plx) / fieldrect.w;
+        dy = (pry - ply) / fieldrect.w;
         cx = plx + camera->x;
         cy = ply + camera->y;
 
         for (x = 0; x < fieldrect.w; x++)
         {
 
-            int height = y - getheight(cx, cy) / 2;
+            int height = y - getheight(cx, cy);
 
             if (height < heightbuffer[x])
             {
 
-                paintpixel(fieldpixels, x, y, fieldrect.w, fieldrect.w, cx, cy, height);
+                paintpixel(fieldpixels, x, y, fieldrect.w, fieldrect.h, cx, cy, height);
 
                 heightbuffer[x] = height;
 
@@ -385,18 +384,14 @@ void gfx_init(unsigned int w, unsigned int h)
 
     }
 
-    skyrect.x = 0;
-    skyrect.y = 0;
-    skyrect.w = w;
-    skyrect.h = h / 8;
     fieldrect.x = 0;
     fieldrect.y = 0;
     fieldrect.w = w;
-    fieldrect.h = h - skyrect.h;
+    fieldrect.h = h;
     drect.x = 0;
-    drect.y = skyrect.h;
+    drect.y = 0;
     drect.w = w;
-    drect.h = fieldrect.h;
+    drect.h = h;
 
 }
 
