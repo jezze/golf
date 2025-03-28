@@ -3,6 +3,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include "camera.h"
+#include "map.h"
 #include "game.h"
 #include "gfx.h"
 
@@ -33,11 +34,9 @@ static SDL_Surface *depthimg;
 static SDL_Texture *field;
 static SDL_Rect fieldrect;
 static SDL_Rect drect;
-static unsigned char *layoutpixels;
-static unsigned char *depthpixels;
 static int heightbuffer[SCREEN_WIDTH];
 
-static unsigned int getcolor(float cx, float cy)
+static unsigned int getcolor(struct map *map, float cx, float cy)
 {
 
     unsigned int mx = cx;
@@ -47,7 +46,7 @@ static unsigned int getcolor(float cx, float cy)
     {
 
         unsigned int mapoffset = my * layoutimg->w + mx;
-        unsigned char type = layoutpixels[mapoffset];
+        unsigned char type = map->layoutpixels[mapoffset];
 
         if (type == 1)
         {
@@ -80,7 +79,7 @@ static unsigned int getcolor(float cx, float cy)
 
 }
 
-static unsigned int getheight(float cx, float cy)
+static unsigned int getheight(struct map *map, float cx, float cy)
 {
 
     unsigned int mx = cx;
@@ -91,7 +90,7 @@ static unsigned int getheight(float cx, float cy)
 
         unsigned int mapoffset = my * depthimg->w + mx;
 
-        return depthpixels[mapoffset];
+        return map->depthpixels[mapoffset];
  
     }
 
@@ -109,7 +108,7 @@ static void clearfield(unsigned int *pixels)
 
 }
 
-static void paintpixel(unsigned int *pixels, unsigned int x, unsigned int y, unsigned int w, unsigned int h, float cx, float cy, int height)
+static void paintpixel(unsigned int *pixels, struct map *map, unsigned int x, unsigned int y, unsigned int w, unsigned int h, float cx, float cy, int height)
 {
 
     int i;
@@ -122,13 +121,13 @@ static void paintpixel(unsigned int *pixels, unsigned int x, unsigned int y, uns
 
         unsigned int offset = (i * w) + x;
 
-        pixels[offset] = getcolor(cx, cy);
+        pixels[offset] = getcolor(map, cx, cy);
 
     }
 
 }
 
-void gfx_render(struct camera *camera)
+void gfx_render(struct camera *camera, struct map *map)
 {
 
     float zfraction = (camera->distance * camera->z);
@@ -180,12 +179,12 @@ void gfx_render(struct camera *camera)
         for (x = 0; x < fieldrect.w; x++)
         {
 
-            int height = y - getheight(cx, cy);
+            int height = y - getheight(map, cx, cy);
 
             if (height < heightbuffer[x])
             {
 
-                paintpixel(fieldpixels, x, y, fieldrect.w, fieldrect.h, cx, cy, height);
+                paintpixel(fieldpixels, map, x, y, fieldrect.w, fieldrect.h, cx, cy, height);
 
                 heightbuffer[x] = height;
 
@@ -320,6 +319,35 @@ void gfx_input(void)
 
 }
 
+void gfx_loadmap(struct map *map)
+{
+
+    layoutimg = IMG_Load(map->layout);
+
+    if (!layoutimg)
+    {
+
+        printf("Layout image could not be created! SDL_Error: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
+
+    }
+
+    map->layoutpixels = (unsigned char *)layoutimg->pixels;
+
+    depthimg = IMG_Load(map->depth);
+
+    if (!depthimg)
+    {
+
+        printf("Depth image could not be created! SDL_Error: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
+
+    }
+
+    map->depthpixels = (unsigned char *)depthimg->pixels;
+
+}
+
 void gfx_init(unsigned int w, unsigned int h)
 {
 
@@ -351,29 +379,6 @@ void gfx_init(unsigned int w, unsigned int h)
 
     }
 
-    layoutimg = IMG_Load("assets/layout.png");
-
-    if (!layoutimg)
-    {
-
-        printf("Layout image could not be created! SDL_Error: %s\n", SDL_GetError());
-        exit(EXIT_FAILURE);
-
-    }
-
-    layoutpixels = (unsigned char *)layoutimg->pixels;
-
-    depthimg = IMG_Load("assets/depth.png");
-
-    if (!depthimg)
-    {
-
-        printf("Depth image could not be created! SDL_Error: %s\n", SDL_GetError());
-        exit(EXIT_FAILURE);
-
-    }
-
-    depthpixels = (unsigned char *)depthimg->pixels;
     field = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, w, h);
 
     if (!field)

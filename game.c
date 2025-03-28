@@ -1,12 +1,14 @@
 #include <stdlib.h>
 #include <math.h>
 #include "camera.h"
+#include "map.h"
 #include "gfx.h"
 
 #define SPEED (32.0)
 #define ROTSPEED (3.14159 / 24)
 
 static struct camera camera;
+static struct map map;
 static unsigned int running = 1;
 
 unsigned int game_isrunning(void)
@@ -78,7 +80,7 @@ void game_step(void)
     camera.x += camera.vx;
     camera.y += camera.vy;
 
-    gfx_render(&camera);
+    gfx_render(&camera, &map);
 
 }
 
@@ -93,6 +95,8 @@ void game_init(void)
 {
 
     gfx_init(SCREEN_WIDTH, SCREEN_HEIGHT);
+    map_init(&map, "assets/layout.png", "assets/depth.png");
+    gfx_loadmap(&map);
 
     camera.x = 2300;
     camera.y = 4150;
