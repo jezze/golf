@@ -105,10 +105,8 @@ void game_step(void)
         camera.vangle -= ROTSPEED;
 
     camera.angle += camera.vangle;
-    camera.x += cos(camera.angle) * vx;
-    camera.y -= sin(camera.angle) * vx;
-    camera.x += sin(camera.angle) * vy;
-    camera.y += cos(camera.angle) * vy;
+    camera.x += cos(camera.angle) * vx + sin(camera.angle) * vy;
+    camera.y += cos(camera.angle) * vy - sin(camera.angle) * vx;
 
     gfx_render(&camera, &map);
 
