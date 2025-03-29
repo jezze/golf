@@ -21,6 +21,32 @@ static unsigned int moveright = BUTTONSTATE_NONE;
 static unsigned int rotleft = BUTTONSTATE_NONE;
 static unsigned int rotright = BUTTONSTATE_NONE;
 
+static unsigned int changestate(unsigned int press, unsigned int opposite)
+{
+
+    if (press)
+    {
+
+        switch (opposite)
+        {
+
+        case BUTTONSTATE_NONE:
+            return BUTTONSTATE_ACTIVE;
+
+        case BUTTONSTATE_ACTIVE:
+            return BUTTONSTATE_WAIT;
+
+        default:
+            return BUTTONSTATE_NONE;
+
+        }
+
+    }
+
+    return BUTTONSTATE_NONE;
+
+}
+
 unsigned int game_isrunning(void)
 {
 
@@ -31,48 +57,28 @@ unsigned int game_isrunning(void)
 void game_moveup(unsigned int press)
 {
 
-    if (press && movedown == BUTTONSTATE_NONE)
-        moveup = BUTTONSTATE_ACTIVE;
-    else if (press && movedown == BUTTONSTATE_ACTIVE)
-        moveup = BUTTONSTATE_WAIT;
-    else
-        moveup = BUTTONSTATE_NONE;
+    moveup = changestate(press, movedown);
 
 }
 
 void game_movedown(unsigned int press)
 {
 
-    if (press && moveup == BUTTONSTATE_NONE)
-        movedown = BUTTONSTATE_ACTIVE;
-    else if (press && moveup == BUTTONSTATE_ACTIVE)
-        movedown = BUTTONSTATE_WAIT;
-    else
-        movedown = BUTTONSTATE_NONE;
+    movedown = changestate(press, moveup);
 
 }
 
 void game_moveleft(unsigned int press)
 {
 
-    if (press && moveright == BUTTONSTATE_NONE)
-        moveleft = BUTTONSTATE_ACTIVE;
-    else if (press && moveright == BUTTONSTATE_ACTIVE)
-        moveleft = BUTTONSTATE_WAIT;
-    else
-        moveleft = BUTTONSTATE_NONE;
+    moveleft = changestate(press, moveright);
 
 }
 
 void game_moveright(unsigned int press)
 {
 
-    if (press && moveleft == BUTTONSTATE_NONE)
-        moveright = BUTTONSTATE_ACTIVE;
-    else if (press && moveleft == BUTTONSTATE_ACTIVE)
-        moveright = BUTTONSTATE_WAIT;
-    else
-        moveright = BUTTONSTATE_NONE;
+    moveright = changestate(press, moveleft);
 
 }
 
@@ -86,24 +92,14 @@ void game_translateheight(float height)
 void game_rotateleft(unsigned int press)
 {
 
-    if (press && rotright == BUTTONSTATE_NONE)
-        rotleft = BUTTONSTATE_ACTIVE;
-    else if (press && rotright == BUTTONSTATE_ACTIVE)
-        rotleft = BUTTONSTATE_WAIT;
-    else
-        rotleft = BUTTONSTATE_NONE;
+    rotleft = changestate(press, rotright);
 
 }
 
 void game_rotateright(unsigned int press)
 {
 
-    if (press && rotleft == BUTTONSTATE_NONE)
-        rotright = BUTTONSTATE_ACTIVE;
-    else if (press && rotleft == BUTTONSTATE_ACTIVE)
-        rotright = BUTTONSTATE_WAIT;
-    else
-        rotright = BUTTONSTATE_NONE;
+    rotright = changestate(press, rotleft);
 
 }
 
