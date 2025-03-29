@@ -5,10 +5,6 @@ struct camera
     float y;
     float z;
     float angle;
-    float vx;
-    float vy;
-    float vz;
-    float vangle;
     float distance;
     float cosphi;
     float sinphi;

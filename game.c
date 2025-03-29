@@ -20,8 +20,6 @@ static unsigned int moveleft = BUTTONSTATE_NONE;
 static unsigned int moveright = BUTTONSTATE_NONE;
 static unsigned int rotleft = BUTTONSTATE_NONE;
 static unsigned int rotright = BUTTONSTATE_NONE;
-static float vx;
-static float vy;
 
 unsigned int game_isrunning(void)
 {
@@ -112,6 +110,10 @@ void game_rotateright(unsigned int press)
 void game_step(void)
 {
 
+    float vx = 0;
+    float vy = 0;
+    float vangle = 0;
+
     gfx_input();
 
     if (moveup == BUTTONSTATE_NONE && movedown == BUTTONSTATE_WAIT)
@@ -132,10 +134,6 @@ void game_step(void)
     if (rotright == BUTTONSTATE_NONE && rotleft == BUTTONSTATE_WAIT)
         rotleft = BUTTONSTATE_ACTIVE;
 
-    vx = 0;
-    vy = 0;
-    camera.vangle = 0;
-
     if (moveup == BUTTONSTATE_ACTIVE)
         vy -= SPEED;
 
@@ -149,12 +147,12 @@ void game_step(void)
         vx += SPEED;
 
     if (rotleft == BUTTONSTATE_ACTIVE)
-        camera.vangle += ROTSPEED;
+        vangle += ROTSPEED;
 
     if (rotright == BUTTONSTATE_ACTIVE)
-        camera.vangle -= ROTSPEED;
+        vangle -= ROTSPEED;
 
-    camera.angle += camera.vangle;
+    camera.angle += vangle;
     camera.sinphi = sin(camera.angle);
     camera.cosphi = cos(camera.angle);
     camera.x += camera.cosphi * vx + camera.sinphi * vy;
