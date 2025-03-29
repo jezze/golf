@@ -10,6 +10,8 @@ struct camera
     float vz;
     float vangle;
     float distance;
+    float cosphi;
+    float sinphi;
 
 };
 

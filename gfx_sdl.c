@@ -133,8 +133,6 @@ void renderfield(struct camera *camera, struct map *map)
 {
 
     float zfraction = (camera->distance * camera->z);
-    float sinphi = sin(camera->angle);
-    float cosphi = cos(camera->angle);
     unsigned int x;
     unsigned int y;
     unsigned int *pixels;
@@ -165,10 +163,10 @@ void renderfield(struct camera *camera, struct map *map)
 
         float z = zfraction / (y - horizon);
 
-        plx = (-cosphi * z) - (sinphi * z);
-        ply = ( sinphi * z) - (cosphi * z);
-        prx = ( cosphi * z) - (sinphi * z);
-        pry = (-sinphi * z) - (cosphi * z);
+        plx = (camera->cosphi * -z) - (camera->sinphi * z);
+        ply = (camera->sinphi * z) - (camera->cosphi * z);
+        prx = (camera->cosphi * z) - (camera->sinphi * z);
+        pry = (camera->sinphi * -z) - (camera->cosphi * z);
         dx = (prx - plx) / fieldrect.w;
         dy = (pry - ply) / fieldrect.w;
         cx = plx + camera->x;
