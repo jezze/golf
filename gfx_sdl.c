@@ -157,21 +157,24 @@ static void paintsky(unsigned int *pixels)
 
 }
 
-static void paintfield(unsigned int *pixels, struct map *map, unsigned int x, unsigned int y, unsigned int w, unsigned int h, float cx, float cy, int height)
+static void paintfield(unsigned int *pixels, unsigned int type, unsigned int x, unsigned int y, unsigned int w, unsigned int h, float cx, float cy, int ytop)
 {
 
-    unsigned int type = gettype(map, cx, cy);
+    unsigned int color = getcolor(type, cx, cy);
+    unsigned int offset;
     int i;
 
-    if (height < 0)
-        height = 0;
+    if (ytop < 0)
+        ytop = 0;
 
-    for (i = height; i < heightbuffer[x]; i++)
+    offset = (ytop * w) + x;
+
+    for (i = ytop; i < heightbuffer[x]; i++)
     {
 
-        unsigned int offset = (i * w) + x;
+        pixels[offset] = color;
 
-        pixels[offset] = getcolor(type, cx, cy);
+        offset += w;
 
     }
 
@@ -223,13 +226,14 @@ void renderfield(struct camera *camera, struct map *map)
         for (x = 0; x < fieldrect.w; x++)
         {
 
+            unsigned int type = gettype(map, cx, cy);
             float height = map_getheight(map, cx, cy);
             int ytop = y - height;
 
             if (ytop < heightbuffer[x])
             {
 
-                paintfield(pixels, map, x, y, fieldrect.w, fieldrect.h, cx, cy, ytop);
+                paintfield(pixels, type, x, y, fieldrect.w, fieldrect.h, cx, cy, ytop);
 
                 heightbuffer[x] = ytop;
 
