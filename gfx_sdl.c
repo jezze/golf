@@ -61,8 +61,29 @@ static float getgrassheight(unsigned int type, float cx, float cy)
     unsigned int mx = cx;
     unsigned int my = cy;
     unsigned int offset = (my * 32 + mx) & 0xFFF;
+    unsigned char height = grass[offset];
 
-    return grass[offset] % 8;
+    switch (type)
+    {
+
+    case MAP_TYPE_FAIRWAY:
+        return height & 0x02;
+
+    case MAP_TYPE_GREEN:
+        return height & 0x01;
+
+    case MAP_TYPE_ROUGH:
+        return height & 0x07;
+
+    case MAP_TYPE_DEEPROUGH:
+        return height & 0x1f;
+
+    case MAP_TYPE_SAND:
+        return height & 0x01;
+
+    }
+
+    return height % 4;
 
 }
 
@@ -87,7 +108,7 @@ static unsigned int getcolor(unsigned int type, float cx, float cy)
         g = 0x60;
         b = 0x00;
 
-        g -= getgrassheight(type, cx, cy);
+        g -= getgrassheight(type, cx, cy) * 2;
 
         if ((mx / 16) % 2 == 0)
             g -= 0x02;
@@ -102,7 +123,7 @@ static unsigned int getcolor(unsigned int type, float cx, float cy)
         g = 0x60;
         b = 0x00;
 
-        g -= getgrassheight(type, cx, cy);
+        g -= getgrassheight(type, cx, cy) * 2;
 
         break;
 
@@ -111,7 +132,7 @@ static unsigned int getcolor(unsigned int type, float cx, float cy)
         g = 0x50;
         b = 0x00;
 
-        g -= getgrassheight(type, cx, cy);
+        g -= getgrassheight(type, cx, cy) * 2;
 
         break;
 
@@ -120,7 +141,7 @@ static unsigned int getcolor(unsigned int type, float cx, float cy)
         g = 0x40;
         b = 0x00;
 
-        g -= getgrassheight(type, cx, cy);
+        g -= getgrassheight(type, cx, cy) * 2;
 
         break;
 
@@ -129,9 +150,9 @@ static unsigned int getcolor(unsigned int type, float cx, float cy)
         g = 0x80;
         b = 0x40;
 
-        r -= getgrassheight(type, cx, cy);
-        g -= getgrassheight(type, cx, cy);
-        b -= getgrassheight(type, cx, cy);
+        r -= getgrassheight(type, cx, cy) * 2;
+        g -= getgrassheight(type, cx, cy) * 2;
+        b -= getgrassheight(type, cx, cy) * 2;
 
         break;
 
@@ -222,7 +243,7 @@ void renderfield(struct camera *camera, struct map *map)
         {
 
             unsigned int type = gettype(map, cx, cy);
-            float height = map_getheight(map, cx, cy);
+            float height = map_getheight(map, cx, cy) - getgrassheight(type, cx, cy);
             unsigned int ztop = y - height;
 
             if (ztop < zbuffer[x])
