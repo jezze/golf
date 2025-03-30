@@ -6,7 +6,7 @@
 #include "gfx.h"
 
 #define SPEED (32.0)
-#define ROTSPEED (3.14159 / 24)
+#define ROTSPEED (3.14159 / 32)
 
 #define BUTTONSTATE_NONE 0
 #define BUTTONSTATE_ACTIVE 1
