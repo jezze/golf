@@ -63,7 +63,7 @@ static unsigned int getcolor(struct map *map, float cx, float cy)
             g = 0x60;
             b = 0x00;
 
-            g -= grass[(my * 32 + mx) % GRASS_SIZE] % 8;
+            g -= grass[(my * 32 + mx) & 0xFFF] % 8;
 
             if ((mx / 16) % 2 == 0)
                 g -= 0x02;
@@ -78,7 +78,7 @@ static unsigned int getcolor(struct map *map, float cx, float cy)
             g = 0x60;
             b = 0x00;
 
-            g -= grass[(my * 32 + mx) % GRASS_SIZE] % 8;
+            g -= grass[(my * 32 + mx) & 0xFFF] % 8;
 
             break;
 
@@ -87,7 +87,7 @@ static unsigned int getcolor(struct map *map, float cx, float cy)
             g = 0x50;
             b = 0x00;
 
-            g -= grass[(my * 32 + mx) % GRASS_SIZE] % 8;
+            g -= grass[(my * 32 + mx) & 0xFFF] % 8;
 
             break;
 
@@ -96,7 +96,7 @@ static unsigned int getcolor(struct map *map, float cx, float cy)
             g = 0x40;
             b = 0x00;
 
-            g -= grass[(my * 32 + mx) % GRASS_SIZE] % 8;
+            g -= grass[(my * 32 + mx) & 0xFFF] % 8;
 
             break;
 
@@ -105,9 +105,9 @@ static unsigned int getcolor(struct map *map, float cx, float cy)
             g = 0x80;
             b = 0x40;
 
-            r -= grass[(my * 32 + mx) % GRASS_SIZE] % 8;
-            g -= grass[(my * 32 + mx) % GRASS_SIZE] % 8;
-            b -= grass[(my * 32 + mx) % GRASS_SIZE] % 8;
+            r -= grass[(my * 32 + mx) & 0xFFF] % 8;
+            g -= grass[(my * 32 + mx) & 0xFFF] % 8;
+            b -= grass[(my * 32 + mx) & 0xFFF] % 8;
 
             break;
 
