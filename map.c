@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "map.h"
 
-int map_getheight(struct map *map, float cx, float cy)
+float map_getheight(struct map *map, float cx, float cy)
 {
 
     unsigned int mx = cx;

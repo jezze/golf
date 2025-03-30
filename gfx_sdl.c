@@ -36,6 +36,17 @@ static unsigned char xorshift(void)
 
 }
 
+static float getgrassheight(unsigned int type, float cx, float cy)
+{
+
+    unsigned int mx = cx;
+    unsigned int my = cy;
+    unsigned int offset = (my * 32 + mx) & 0xFFF;
+
+    return grass[offset] % 8;
+
+}
+
 static unsigned int getcolor(struct map *map, float cx, float cy)
 {
 
@@ -63,7 +74,7 @@ static unsigned int getcolor(struct map *map, float cx, float cy)
             g = 0x60;
             b = 0x00;
 
-            g -= grass[(my * 32 + mx) & 0xFFF] % 8;
+            g -= getgrassheight(type, cx, cy);
 
             if ((mx / 16) % 2 == 0)
                 g -= 0x02;
@@ -78,7 +89,7 @@ static unsigned int getcolor(struct map *map, float cx, float cy)
             g = 0x60;
             b = 0x00;
 
-            g -= grass[(my * 32 + mx) & 0xFFF] % 8;
+            g -= getgrassheight(type, cx, cy);
 
             break;
 
@@ -87,7 +98,7 @@ static unsigned int getcolor(struct map *map, float cx, float cy)
             g = 0x50;
             b = 0x00;
 
-            g -= grass[(my * 32 + mx) & 0xFFF] % 8;
+            g -= getgrassheight(type, cx, cy);
 
             break;
 
@@ -96,7 +107,7 @@ static unsigned int getcolor(struct map *map, float cx, float cy)
             g = 0x40;
             b = 0x00;
 
-            g -= grass[(my * 32 + mx) & 0xFFF] % 8;
+            g -= getgrassheight(type, cx, cy);
 
             break;
 
@@ -105,9 +116,9 @@ static unsigned int getcolor(struct map *map, float cx, float cy)
             g = 0x80;
             b = 0x40;
 
-            r -= grass[(my * 32 + mx) & 0xFFF] % 8;
-            g -= grass[(my * 32 + mx) & 0xFFF] % 8;
-            b -= grass[(my * 32 + mx) & 0xFFF] % 8;
+            r -= getgrassheight(type, cx, cy);
+            g -= getgrassheight(type, cx, cy);
+            b -= getgrassheight(type, cx, cy);
 
             break;
 

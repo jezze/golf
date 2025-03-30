@@ -21,5 +21,5 @@ struct map
 
 };
 
-int map_getheight(struct map *map, float cx, float cy);
+float map_getheight(struct map *map, float cx, float cy);
 void map_init(struct map *map, char *layout, char *depth, unsigned int w, unsigned int h, unsigned int teex, unsigned int teeh);
