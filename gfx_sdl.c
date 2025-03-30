@@ -8,26 +8,6 @@
 #include "game.h"
 #include "gfx.h"
 
-#define TYPE_NONE 0
-#define TYPE_FAIRWAY 1
-#define TYPE_GREEN 2
-#define TYPE_ROUGH 3
-#define TYPE_DEEPROUGH 4
-#define TYPE_SAND 5
-#define TYPE_RED 6
-#define TYPE_HOLE 7
-
-static unsigned int colors[] = {
-    0x4080A0FF,
-    0x006000FF,
-    0x008000FF,
-    0x004000FF,
-    0x002000FF,
-    0x808040FF,
-    0xF00000FF,
-    0xE0E0E0FF
-};
-
 static SDL_Window *window;
 static SDL_Renderer *renderer;
 static SDL_Surface *layoutimg;
@@ -44,74 +24,68 @@ static unsigned int getcolor(struct map *map, float cx, float cy)
 
     unsigned int mx = cx;
     unsigned int my = cy;
+    unsigned int color = 0x4080A0FF;
 
-    if (mx < layoutimg->w && my < layoutimg->h)
+    if (mx < map->w && my < map->h)
     {
 
-        unsigned int mapoffset = my * layoutimg->w + mx;
+        unsigned int mapoffset = my * map->w + mx;
         unsigned char type = map->layoutpixels[mapoffset];
 
-        if (type == 1)
+        switch (type)
         {
 
-            unsigned int color = colors[type];
+        case MAP_TYPE_NONE:
+            return 0x4080A0FF;
+
+        case MAP_TYPE_FAIRWAY:
+            color = 0x006000FF;
 
             if ((mx / 16) % 2 == 0)
-            {
-
-                color = color - 0x00040000;
-
-            }
+                color -= 0x00040000;
 
             if ((my / 16) % 2 == 0)
-            {
-
-                color = color - 0x00040000;
-
-            }
+                color -= 0x00040000;
 
             return color;
 
+        case MAP_TYPE_GREEN:
+            return 0x008000FF;
+
+        case MAP_TYPE_ROUGH:
+            return 0x004000FF;
+
+        case MAP_TYPE_DEEPROUGH:
+            return 0x002000FF;
+
+        case MAP_TYPE_SAND:
+            return 0x808040FF;
+
+        case MAP_TYPE_WATER:
+            return 0x102030FF;
+
+        case MAP_TYPE_HOLE:
+            return 0xE0E0E0FF;
+
         }
 
-        return colors[type];
- 
     }
 
-    return colors[0];
+    return color;
 
 }
 
-static unsigned int getheight(struct map *map, float cx, float cy)
-{
-
-    unsigned int mx = cx;
-    unsigned int my = cy;
-
-    if (mx < depthimg->w && my < depthimg->h)
-    {
-
-        unsigned int mapoffset = my * depthimg->w + mx;
-
-        return map->depthpixels[mapoffset];
- 
-    }
-
-    return 0;
-
-}
-
-static void clearfield(unsigned int *pixels)
+static void paintsky(unsigned int *pixels)
 {
 
     unsigned int i;
 
     for (i = 0; i < fieldrect.w * fieldrect.h; i++)
-        pixels[i] = colors[0];
+        pixels[i] = 0x4080A0FF;
 
 }
 
-static void paintpixel(unsigned int *pixels, struct map *map, unsigned int x, unsigned int y, unsigned int w, unsigned int h, float cx, float cy, int height)
+static void paintfield(unsigned int *pixels, struct map *map, unsigned int x, unsigned int y, unsigned int w, unsigned int h, float cx, float cy, int height)
 {
 
     int i;
@@ -157,9 +131,9 @@ void renderfield(struct camera *camera, struct map *map)
         heightbuffer[x] = fieldrect.h;
 
     SDL_LockTexture(field, &fieldrect, (void **)&pixels, &pitch);
-    clearfield(pixels);
+    paintsky(pixels);
 
-    for (y = fieldrect.h + 255; y > horizon; y--)
+    for (y = fieldrect.h + 128; y > horizon; y--)
     {
 
         float z = zfraction / (y - horizon);
@@ -176,12 +150,12 @@ void renderfield(struct camera *camera, struct map *map)
         for (x = 0; x < fieldrect.w; x++)
         {
 
-            int height = y - getheight(map, cx, cy);
+            int height = y - map_getheight(map, cx, cy);
 
             if (height < heightbuffer[x])
             {
 
-                paintpixel(pixels, map, x, y, fieldrect.w, fieldrect.h, cx, cy, height);
+                paintfield(pixels, map, x, y, fieldrect.w, fieldrect.h, cx, cy, height);
 
                 heightbuffer[x] = height;
 

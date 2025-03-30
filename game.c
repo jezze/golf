@@ -170,7 +170,7 @@ void game_stop(void)
 void game_init(void)
 {
 
-    map_init(&map, "assets/layout.png", "assets/depth.png", 2300.0, 4150.0);
+    map_init(&map, "assets/layout.png", "assets/depth.png", 5000, 5000, 2300, 4150);
     ball_init(&ball, map.teex, map.teey, 0);
     camera_init(&camera, ball.x, ball.y + 120, 200.0, 800.0);
     gfx_init(SCREEN_WIDTH, SCREEN_HEIGHT);
