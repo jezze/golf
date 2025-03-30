@@ -156,7 +156,7 @@ void game_step(void)
     camera.x += camera.cosphi * vx + camera.sinphi * vy;
     camera.y += camera.cosphi * vy - camera.sinphi * vx;
 
-    gfx_render(&camera, &map);
+    gfx_render(&camera, &map, &ball);
 
 }
 

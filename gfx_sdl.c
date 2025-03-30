@@ -4,6 +4,7 @@
 #include <SDL_image.h>
 #include "camera.h"
 #include "map.h"
+#include "ball.h"
 #include "game.h"
 #include "gfx.h"
 
@@ -243,7 +244,7 @@ void renderminimap(struct camera *camera, struct map *map)
 
 }
 
-void gfx_render(struct camera *camera, struct map *map)
+void gfx_render(struct camera *camera, struct map *map, struct ball *ball)
 {
 
     SDL_SetRenderDrawColor(renderer, 0x40, 0x80, 0xA0, 0xFF);
