@@ -67,7 +67,7 @@ static float getgrassheight(unsigned int type, float cx, float cy)
     {
 
     case MAP_TYPE_FAIRWAY:
-        return height & 0x02;
+        return height & 0x03;
 
     case MAP_TYPE_GREEN:
         return height & 0x01;
@@ -76,14 +76,14 @@ static float getgrassheight(unsigned int type, float cx, float cy)
         return height & 0x07;
 
     case MAP_TYPE_DEEPROUGH:
-        return height & 0x1f;
+        return height & 0x0f;
 
     case MAP_TYPE_SAND:
         return height & 0x01;
 
     }
 
-    return height % 4;
+    return 0;
 
 }
 
@@ -120,7 +120,7 @@ static unsigned int getcolor(unsigned int type, float cx, float cy)
 
     case MAP_TYPE_GREEN:
         r = 0x00;
-        g = 0x60;
+        g = 0x62;
         b = 0x00;
 
         g -= getgrassheight(type, cx, cy) * 2;
@@ -146,9 +146,9 @@ static unsigned int getcolor(unsigned int type, float cx, float cy)
         break;
 
     case MAP_TYPE_SAND:
-        r = 0x80;
-        g = 0x80;
-        b = 0x40;
+        r = 0xC0;
+        g = 0xC0;
+        b = 0x80;
 
         r -= getgrassheight(type, cx, cy) * 2;
         g -= getgrassheight(type, cx, cy) * 2;
@@ -173,7 +173,7 @@ static void paintsky(unsigned int *pixels)
 
     unsigned int i;
 
-    for (i = 0; i < fieldrect.w * fieldrect.h; i++)
+    for (i = 0; i < fieldrect.w * (horizon + 1); i++)
         pixels[i] = 0x4080A0FF;
 
 }
