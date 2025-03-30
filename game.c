@@ -2,6 +2,7 @@
 #include <math.h>
 #include "camera.h"
 #include "map.h"
+#include "ball.h"
 #include "gfx.h"
 
 #define SPEED (32.0)
@@ -13,6 +14,7 @@
 
 static struct camera camera;
 static struct map map;
+static struct ball ball;
 static unsigned int running = 1;
 static unsigned int moveup = BUTTONSTATE_NONE;
 static unsigned int movedown = BUTTONSTATE_NONE;
@@ -169,7 +171,8 @@ void game_init(void)
 {
 
     map_init(&map, "assets/layout.png", "assets/depth.png", 2300.0, 4150.0);
-    camera_init(&camera, map.teex, map.teey + 120, 200.0, 800.0);
+    ball_init(&ball, map.teex, map.teey, 0);
+    camera_init(&camera, ball.x, ball.y + 120, 200.0, 800.0);
     gfx_init(SCREEN_WIDTH, SCREEN_HEIGHT);
     gfx_loadmap(&map);
 
