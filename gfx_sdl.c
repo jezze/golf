@@ -313,15 +313,26 @@ void renderminimap(struct camera *camera, struct map *map)
 
 }
 
+static unsigned int frametime = 1000 / 60;
+
 void gfx_render(struct camera *camera, struct map *map, struct ball *ball)
 {
+
+    unsigned int framestart = SDL_GetTicks();
+    unsigned int frameend;
+    unsigned int frametotal;
 
     SDL_SetRenderDrawColor(renderer, 0x40, 0x80, 0xA0, 0xFF);
     SDL_RenderClear(renderer);
     renderfield(camera, map);
     renderminimap(camera, map);
     SDL_RenderPresent(renderer);
-    SDL_Delay(16);
+
+    frameend = SDL_GetTicks();
+    frametotal = frameend - framestart;
+
+    if (frametotal < frametime)
+        SDL_Delay(frametime - frametotal);
 
 }
 
