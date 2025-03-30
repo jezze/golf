@@ -161,13 +161,8 @@ static void paintfield(unsigned int *pixels, unsigned int type, unsigned int x, 
 {
 
     unsigned int color = getcolor(type, cx, cy);
-    unsigned int offset;
+    unsigned int offset = (ytop * w) + x;
     int i;
-
-    if (ytop < 0)
-        ytop = 0;
-
-    offset = (ytop * w) + x;
 
     for (i = ytop; i < heightbuffer[x]; i++)
     {
@@ -228,7 +223,7 @@ void renderfield(struct camera *camera, struct map *map)
 
             unsigned int type = gettype(map, cx, cy);
             float height = map_getheight(map, cx, cy);
-            int ytop = y - height;
+            unsigned int ytop = y - height;
 
             if (ytop < heightbuffer[x])
             {
