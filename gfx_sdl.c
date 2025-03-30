@@ -18,13 +18,31 @@ static SDL_Rect fieldrect;
 static SDL_Rect minimaprect;
 static int heightbuffer[SCREEN_WIDTH];
 static unsigned int horizon;
+static unsigned char grass[64];
+static unsigned int xorstate = 0x01234567;
+
+static unsigned char xorshift(void)
+{
+
+    unsigned int x = xorstate;
+
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+
+    return xorstate = x;
+
+}
 
 static unsigned int getcolor(struct map *map, float cx, float cy)
 {
 
     unsigned int mx = cx;
     unsigned int my = cy;
-    unsigned int color = 0x4080A0FF;
+    unsigned char r = 0x40;
+    unsigned char g = 0x80;
+    unsigned char b = 0xA0;
+    unsigned char a = 0xFF;
 
     if (mx < map->w && my < map->h)
     {
@@ -39,15 +57,17 @@ static unsigned int getcolor(struct map *map, float cx, float cy)
             return 0x4080A0FF;
 
         case MAP_TYPE_FAIRWAY:
-            color = 0x006000FF;
+            r = 0x00;
+            g = 0x60;
+            b = 0x00;
 
             if ((mx / 16) % 2 == 0)
-                color -= 0x00040000;
+                g -= 0x08;
 
             if ((my / 16) % 2 == 0)
-                color -= 0x00040000;
+                g -= 0x08;
 
-            return color;
+            break;
 
         case MAP_TYPE_GREEN:
             return 0x008000FF;
@@ -71,7 +91,7 @@ static unsigned int getcolor(struct map *map, float cx, float cy)
 
     }
 
-    return color;
+    return ((r << 24) | (g << 16) | (b << 8) | a);
 
 }
 
@@ -187,8 +207,8 @@ void renderminimap(struct camera *camera, struct map *map)
     float dx = scale;
     float dy = scale;
 
-    targetrect.x = SCREEN_WIDTH - minimaprect.w - 20;
-    targetrect.y = SCREEN_HEIGHT - minimaprect.h - 20;
+    targetrect.x = SCREEN_WIDTH - minimaprect.w - SCREEN_PADDING;
+    targetrect.y = SCREEN_HEIGHT - minimaprect.h - SCREEN_PADDING;
     targetrect.w = minimaprect.w;
     targetrect.h = minimaprect.h;
 
@@ -356,8 +376,6 @@ void gfx_loadmap(struct map *map)
 
     }
 
-    map->layoutpixels = (unsigned char *)layoutimg->pixels;
-
     depthimg = IMG_Load(map->depth);
 
     if (!depthimg)
@@ -368,12 +386,15 @@ void gfx_loadmap(struct map *map)
 
     }
 
+    map->layoutpixels = (unsigned char *)layoutimg->pixels;
     map->depthpixels = (unsigned char *)depthimg->pixels;
 
 }
 
 void gfx_init(unsigned int w, unsigned int h)
 {
+
+    unsigned int i;
 
     horizon = h / 4;
     fieldrect.x = 0;
@@ -382,8 +403,11 @@ void gfx_init(unsigned int w, unsigned int h)
     fieldrect.h = h;
     minimaprect.x = 0;
     minimaprect.y = 0;
-    minimaprect.w = 200;
-    minimaprect.h = 240;
+    minimaprect.w = w / 8;
+    minimaprect.h = h / 6;
+
+    for (i = 0; i < 64; i++)
+        grass[i] = xorshift();
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
