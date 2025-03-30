@@ -8,6 +8,8 @@
 #include "game.h"
 #include "gfx.h"
 
+#define GRASS_SIZE 4096
+
 static SDL_Window *window;
 static SDL_Renderer *renderer;
 static SDL_Surface *layoutimg;
@@ -18,7 +20,7 @@ static SDL_Rect fieldrect;
 static SDL_Rect minimaprect;
 static int heightbuffer[SCREEN_WIDTH];
 static unsigned int horizon;
-static unsigned char grass[64];
+static unsigned char grass[GRASS_SIZE];
 static unsigned int xorstate = 0x01234567;
 
 static unsigned char xorshift(void)
@@ -61,25 +63,53 @@ static unsigned int getcolor(struct map *map, float cx, float cy)
             g = 0x60;
             b = 0x00;
 
+            g -= grass[(my * 32 + mx) % GRASS_SIZE] % 8;
+
             if ((mx / 16) % 2 == 0)
-                g -= 0x08;
+                g -= 0x02;
 
             if ((my / 16) % 2 == 0)
-                g -= 0x08;
+                g -= 0x02;
 
             break;
 
         case MAP_TYPE_GREEN:
-            return 0x008000FF;
+            r = 0x00;
+            g = 0x60;
+            b = 0x00;
+
+            g -= grass[(my * 32 + mx) % GRASS_SIZE] % 8;
+
+            break;
 
         case MAP_TYPE_ROUGH:
-            return 0x004000FF;
+            r = 0x00;
+            g = 0x50;
+            b = 0x00;
+
+            g -= grass[(my * 32 + mx) % GRASS_SIZE] % 8;
+
+            break;
 
         case MAP_TYPE_DEEPROUGH:
-            return 0x002000FF;
+            r = 0x00;
+            g = 0x40;
+            b = 0x00;
+
+            g -= grass[(my * 32 + mx) % GRASS_SIZE] % 8;
+
+            break;
 
         case MAP_TYPE_SAND:
-            return 0x808040FF;
+            r = 0x80;
+            g = 0x80;
+            b = 0x40;
+
+            r -= grass[(my * 32 + mx) % GRASS_SIZE] % 8;
+            g -= grass[(my * 32 + mx) % GRASS_SIZE] % 8;
+            b -= grass[(my * 32 + mx) % GRASS_SIZE] % 8;
+
+            break;
 
         case MAP_TYPE_WATER:
             return 0x102030FF;
@@ -406,7 +436,7 @@ void gfx_init(unsigned int w, unsigned int h)
     minimaprect.w = w / 8;
     minimaprect.h = h / 6;
 
-    for (i = 0; i < 64; i++)
+    for (i = 0; i < GRASS_SIZE; i++)
         grass[i] = xorshift();
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
