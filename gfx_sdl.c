@@ -18,7 +18,7 @@ static SDL_Texture *field;
 static SDL_Texture *minimap;
 static SDL_Rect fieldrect;
 static SDL_Rect minimaprect;
-static int heightbuffer[SCREEN_WIDTH];
+static int zbuffer[SCREEN_WIDTH];
 static unsigned int horizon;
 static unsigned char grass[GRASS_SIZE];
 static unsigned int xorstate = 0x01234567;
@@ -157,14 +157,14 @@ static void paintsky(unsigned int *pixels)
 
 }
 
-static void paintfield(unsigned int *pixels, unsigned int type, unsigned int x, unsigned int y, unsigned int w, unsigned int h, float cx, float cy, int ytop)
+static void paintfield(unsigned int *pixels, unsigned int type, unsigned int x, unsigned int y, unsigned int w, unsigned int h, float cx, float cy, int ztop)
 {
 
     unsigned int color = getcolor(type, cx, cy);
-    unsigned int offset = (ytop * w) + x;
+    unsigned int offset = (ztop * w) + x;
     int i;
 
-    for (i = ytop; i < heightbuffer[x]; i++)
+    for (i = ztop; i < zbuffer[x]; i++)
     {
 
         pixels[offset] = color;
@@ -199,7 +199,7 @@ void renderfield(struct camera *camera, struct map *map)
     targetrect.h = fieldrect.h;
 
     for (x = 0; x < fieldrect.w; x++)
-        heightbuffer[x] = fieldrect.h;
+        zbuffer[x] = fieldrect.h;
 
     SDL_LockTexture(field, &fieldrect, (void **)&pixels, &pitch);
     paintsky(pixels);
@@ -223,14 +223,14 @@ void renderfield(struct camera *camera, struct map *map)
 
             unsigned int type = gettype(map, cx, cy);
             float height = map_getheight(map, cx, cy);
-            unsigned int ytop = y - height;
+            unsigned int ztop = y - height;
 
-            if (ytop < heightbuffer[x])
+            if (ztop < zbuffer[x])
             {
 
-                paintfield(pixels, type, x, y, fieldrect.w, fieldrect.h, cx, cy, ytop);
+                paintfield(pixels, type, x, y, fieldrect.w, fieldrect.h, cx, cy, ztop);
 
-                heightbuffer[x] = ytop;
+                zbuffer[x] = ztop;
 
             }
 
