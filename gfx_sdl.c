@@ -150,9 +150,9 @@ static unsigned int getcolor(unsigned int type, float cx, float cy)
         g = 0xC0;
         b = 0x80;
 
-        r -= getgrassheight(type, cx, cy) * 2;
-        g -= getgrassheight(type, cx, cy) * 2;
-        b -= getgrassheight(type, cx, cy) * 2;
+        r -= getgrassheight(type, cx, cy) * 8;
+        g -= getgrassheight(type, cx, cy) * 8;
+        b -= getgrassheight(type, cx, cy) * 8;
 
         break;
 
@@ -178,14 +178,13 @@ static void paintsky(unsigned int *pixels)
 
 }
 
-static void paintfield(unsigned int *pixels, unsigned int type, unsigned int x, unsigned int y, unsigned int w, unsigned int h, float cx, float cy, int ztop)
+static void paintfield(unsigned int *pixels, unsigned int color, unsigned int x, unsigned int y, unsigned int w, unsigned int h, int ztop, int zbottom)
 {
 
-    unsigned int color = getcolor(type, cx, cy);
     unsigned int offset = (ztop * w) + x;
-    int i;
+    int z;
 
-    for (i = ztop; i < zbuffer[x]; i++)
+    for (z = ztop; z < zbottom; z++)
     {
 
         pixels[offset] = color;
@@ -243,13 +242,14 @@ void renderfield(struct camera *camera, struct map *map)
         {
 
             unsigned int type = gettype(map, cx, cy);
+            unsigned int color = getcolor(type, cx, cy);
             float height = map_getheight(map, cx, cy) - getgrassheight(type, cx, cy);
             unsigned int ztop = y - height;
 
             if (ztop < zbuffer[x])
             {
 
-                paintfield(pixels, type, x, y, fieldrect.w, fieldrect.h, cx, cy, ztop);
+                paintfield(pixels, color, x, y, fieldrect.w, fieldrect.h, ztop, zbuffer[x]);
 
                 zbuffer[x] = ztop;
 
