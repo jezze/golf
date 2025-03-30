@@ -36,6 +36,25 @@ static unsigned char xorshift(void)
 
 }
 
+static unsigned int gettype(struct map *map, float cx, float cy)
+{
+
+    unsigned int mx = cx;
+    unsigned int my = cy;
+
+    if (mx < map->w && my < map->h)
+    {
+
+        unsigned int mapoffset = my * map->w + mx;
+
+        return map->layoutpixels[mapoffset];
+
+    }
+
+    return MAP_TYPE_NONE;
+
+}
+
 static float getgrassheight(unsigned int type, float cx, float cy)
 {
 
@@ -47,7 +66,7 @@ static float getgrassheight(unsigned int type, float cx, float cy)
 
 }
 
-static unsigned int getcolor(struct map *map, float cx, float cy)
+static unsigned int getcolor(unsigned int type, float cx, float cy)
 {
 
     unsigned int mx = cx;
@@ -57,78 +76,70 @@ static unsigned int getcolor(struct map *map, float cx, float cy)
     unsigned char b = 0xA0;
     unsigned char a = 0xFF;
 
-    if (mx < map->w && my < map->h)
+    switch (type)
     {
 
-        unsigned int mapoffset = my * map->w + mx;
-        unsigned char type = map->layoutpixels[mapoffset];
+    case MAP_TYPE_NONE:
+        return 0x4080A0FF;
 
-        switch (type)
-        {
+    case MAP_TYPE_FAIRWAY:
+        r = 0x00;
+        g = 0x60;
+        b = 0x00;
 
-        case MAP_TYPE_NONE:
-            return 0x4080A0FF;
+        g -= getgrassheight(type, cx, cy);
 
-        case MAP_TYPE_FAIRWAY:
-            r = 0x00;
-            g = 0x60;
-            b = 0x00;
+        if ((mx / 16) % 2 == 0)
+            g -= 0x02;
 
-            g -= getgrassheight(type, cx, cy);
+        if ((my / 16) % 2 == 0)
+            g -= 0x02;
 
-            if ((mx / 16) % 2 == 0)
-                g -= 0x02;
+        break;
 
-            if ((my / 16) % 2 == 0)
-                g -= 0x02;
+    case MAP_TYPE_GREEN:
+        r = 0x00;
+        g = 0x60;
+        b = 0x00;
 
-            break;
+        g -= getgrassheight(type, cx, cy);
 
-        case MAP_TYPE_GREEN:
-            r = 0x00;
-            g = 0x60;
-            b = 0x00;
+        break;
 
-            g -= getgrassheight(type, cx, cy);
+    case MAP_TYPE_ROUGH:
+        r = 0x00;
+        g = 0x50;
+        b = 0x00;
 
-            break;
+        g -= getgrassheight(type, cx, cy);
 
-        case MAP_TYPE_ROUGH:
-            r = 0x00;
-            g = 0x50;
-            b = 0x00;
+        break;
 
-            g -= getgrassheight(type, cx, cy);
+    case MAP_TYPE_DEEPROUGH:
+        r = 0x00;
+        g = 0x40;
+        b = 0x00;
 
-            break;
+        g -= getgrassheight(type, cx, cy);
 
-        case MAP_TYPE_DEEPROUGH:
-            r = 0x00;
-            g = 0x40;
-            b = 0x00;
+        break;
 
-            g -= getgrassheight(type, cx, cy);
+    case MAP_TYPE_SAND:
+        r = 0x80;
+        g = 0x80;
+        b = 0x40;
 
-            break;
+        r -= getgrassheight(type, cx, cy);
+        g -= getgrassheight(type, cx, cy);
+        b -= getgrassheight(type, cx, cy);
 
-        case MAP_TYPE_SAND:
-            r = 0x80;
-            g = 0x80;
-            b = 0x40;
+        break;
 
-            r -= getgrassheight(type, cx, cy);
-            g -= getgrassheight(type, cx, cy);
-            b -= getgrassheight(type, cx, cy);
+    case MAP_TYPE_WATER:
+        return 0x102030FF;
 
-            break;
-
-        case MAP_TYPE_WATER:
-            return 0x102030FF;
-
-        case MAP_TYPE_HOLE:
-            return 0xE0E0E0FF;
-
-        }
+    case MAP_TYPE_HOLE:
+        return 0xE0E0E0FF;
 
     }
 
@@ -149,6 +160,7 @@ static void paintsky(unsigned int *pixels)
 static void paintfield(unsigned int *pixels, struct map *map, unsigned int x, unsigned int y, unsigned int w, unsigned int h, float cx, float cy, int height)
 {
 
+    unsigned int type = gettype(map, cx, cy);
     int i;
 
     if (height < 0)
@@ -159,7 +171,7 @@ static void paintfield(unsigned int *pixels, struct map *map, unsigned int x, un
 
         unsigned int offset = (i * w) + x;
 
-        pixels[offset] = getcolor(map, cx, cy);
+        pixels[offset] = getcolor(type, cx, cy);
 
     }
 
@@ -211,14 +223,15 @@ void renderfield(struct camera *camera, struct map *map)
         for (x = 0; x < fieldrect.w; x++)
         {
 
-            int height = y - map_getheight(map, cx, cy);
+            float height = map_getheight(map, cx, cy);
+            int ytop = y - height;
 
-            if (height < heightbuffer[x])
+            if (ytop < heightbuffer[x])
             {
 
-                paintfield(pixels, map, x, y, fieldrect.w, fieldrect.h, cx, cy, height);
+                paintfield(pixels, map, x, y, fieldrect.w, fieldrect.h, cx, cy, ytop);
 
-                heightbuffer[x] = height;
+                heightbuffer[x] = ytop;
 
             }
 
@@ -261,9 +274,10 @@ void renderminimap(struct camera *camera, struct map *map)
         for (x = 0; x < minimaprect.w; x++)
         {
 
+            unsigned int type = gettype(map, cx, cy);
             unsigned int offset = (y * minimaprect.w) + x;
 
-            pixels[offset] = getcolor(map, cx, cy);
+            pixels[offset] = getcolor(type, cx, cy);
 
             cx += dx;
 
