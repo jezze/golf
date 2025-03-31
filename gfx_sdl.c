@@ -58,8 +58,8 @@ static unsigned int gettype(struct map *map, float cx, float cy)
 static float getgrassheight(unsigned int type, float cx, float cy)
 {
 
-    unsigned int mx = cx;
-    unsigned int my = cy;
+    unsigned int mx = cx * cx;
+    unsigned int my = cy * cy;
     unsigned int offset = (my * 32 + mx) & 0xFFF;
     unsigned char height = grass[offset];
 
@@ -87,7 +87,7 @@ static float getgrassheight(unsigned int type, float cx, float cy)
 
 }
 
-static unsigned int getcolor(unsigned int type, float cx, float cy)
+static unsigned int getcolor(unsigned int type, float cx, float cy, float grassheight)
 {
 
     unsigned int mx = cx;
@@ -108,7 +108,7 @@ static unsigned int getcolor(unsigned int type, float cx, float cy)
         g = 0x60;
         b = 0x00;
 
-        g -= getgrassheight(type, cx, cy) * 2;
+        g -= grassheight * 2;
 
         if ((mx / 16) % 2 == 0)
             g -= 0x02;
@@ -123,7 +123,7 @@ static unsigned int getcolor(unsigned int type, float cx, float cy)
         g = 0x62;
         b = 0x00;
 
-        g -= getgrassheight(type, cx, cy) * 2;
+        g -= grassheight * 2;
 
         break;
 
@@ -132,7 +132,7 @@ static unsigned int getcolor(unsigned int type, float cx, float cy)
         g = 0x50;
         b = 0x00;
 
-        g -= getgrassheight(type, cx, cy) * 2;
+        g -= grassheight * 2;
 
         break;
 
@@ -141,7 +141,7 @@ static unsigned int getcolor(unsigned int type, float cx, float cy)
         g = 0x40;
         b = 0x00;
 
-        g -= getgrassheight(type, cx, cy) * 2;
+        g -= grassheight * 2;
 
         break;
 
@@ -150,9 +150,9 @@ static unsigned int getcolor(unsigned int type, float cx, float cy)
         g = 0xC0;
         b = 0x80;
 
-        r -= getgrassheight(type, cx, cy) * 8;
-        g -= getgrassheight(type, cx, cy) * 8;
-        b -= getgrassheight(type, cx, cy) * 8;
+        r -= grassheight * 8;
+        g -= grassheight * 8;
+        b -= grassheight * 8;
 
         break;
 
@@ -242,12 +242,15 @@ void renderfield(struct camera *camera, struct map *map)
         {
 
             unsigned int type = gettype(map, cx, cy);
-            unsigned int color = getcolor(type, cx, cy);
-            float height = map_getheight(map, cx, cy) - getgrassheight(type, cx, cy);
+            float grassheight = getgrassheight(type, cx, cy);
+            float mapheight = map_getheight(map, cx, cy);
+            float height = mapheight - grassheight;
             unsigned int ztop = y - height;
 
             if (ztop < zbuffer[x])
             {
+
+                unsigned int color = getcolor(type, cx, cy, grassheight);
 
                 paintfield(pixels, color, x, y, fieldrect.w, fieldrect.h, ztop, zbuffer[x]);
 
@@ -295,9 +298,10 @@ void renderminimap(struct camera *camera, struct map *map)
         {
 
             unsigned int type = gettype(map, cx, cy);
+            float grassheight = getgrassheight(type, cx, cy);
             unsigned int offset = (y * minimaprect.w) + x;
 
-            pixels[offset] = getcolor(type, cx, cy);
+            pixels[offset] = getcolor(type, cx, cy, grassheight);
 
             cx += dx;
 
