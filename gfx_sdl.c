@@ -108,7 +108,7 @@ static unsigned int getcolor(unsigned int type, float cx, float cy, float grassh
         g = 0x60;
         b = 0x00;
 
-        g -= grassheight * 2;
+        g -= grassheight * 4;
 
         if ((mx / 16) % 2 == 0)
             g -= 0x02;
@@ -242,8 +242,8 @@ void renderfield(struct camera *camera, struct map *map)
         {
 
             unsigned int type = gettype(map, cx, cy);
-            float grassheight = getgrassheight(type, cx, cy);
             float mapheight = map_getheight(map, cx, cy);
+            float grassheight = getgrassheight(type, cx, cy);
             float height = mapheight - grassheight;
             unsigned int ztop = y - height;
 
