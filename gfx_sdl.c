@@ -197,7 +197,6 @@ static void paintline(unsigned int *pixels, unsigned int offset, unsigned int pi
 void renderfield(struct camera *camera, struct map *map)
 {
 
-    float zfraction = (camera->distance * camera->z);
     unsigned int x;
     unsigned int y;
     unsigned int *pixels;
@@ -226,7 +225,7 @@ void renderfield(struct camera *camera, struct map *map)
     for (y = fieldrect.h + 128; y > horizon; y--)
     {
 
-        float z = zfraction / (y - horizon);
+        float z = (camera->distance * camera->z) / (y - horizon);
 
         plx = (camera->cosphi * -z) - (camera->sinphi * z);
         ply = (camera->sinphi * z) - (camera->cosphi * z);
@@ -243,7 +242,7 @@ void renderfield(struct camera *camera, struct map *map)
             unsigned int type = gettype(map, cx, cy);
             float mapheight = map_getheight(map, cx, cy);
             float grassheight = getgrassheight(type, cx, cy);
-            float height = (mapheight - grassheight) * ((float)y / z) * 10;
+            float height = (mapheight + grassheight) * ((float)y / z) * 10;
             unsigned int ztop = (float)y - height;
 
             if (ztop < zbuffer[x])
