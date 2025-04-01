@@ -243,8 +243,8 @@ void renderfield(struct camera *camera, struct map *map)
             unsigned int type = gettype(map, cx, cy);
             float mapheight = map_getheight(map, cx, cy);
             float grassheight = getgrassheight(type, cx, cy);
-            float height = mapheight - grassheight;
-            unsigned int ztop = (float)y - 10 * height * ((float)y / z);
+            float height = (mapheight - grassheight) * ((float)y / z) * 10;
+            unsigned int ztop = (float)y - height;
 
             if (ztop < zbuffer[x])
             {
