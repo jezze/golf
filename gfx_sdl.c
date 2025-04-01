@@ -92,16 +92,20 @@ static unsigned int getcolor(unsigned int type, float cx, float cy, float grassh
 
     unsigned int mx = cx;
     unsigned int my = cy;
-    unsigned char r = 0x40;
-    unsigned char g = 0x80;
-    unsigned char b = 0xA0;
+    unsigned char r = 0x00;
+    unsigned char g = 0x00;
+    unsigned char b = 0x00;
     unsigned char a = 0xFF;
 
     switch (type)
     {
 
     case MAP_TYPE_NONE:
-        return 0x4080A0FF;
+        r = 0x40;
+        g = 0x80;
+        b = 0xA0;
+
+        break;
 
     case MAP_TYPE_FAIRWAY:
         r = 0x00;
@@ -142,17 +146,21 @@ static unsigned int getcolor(unsigned int type, float cx, float cy, float grassh
         g = 0xC0;
         b = 0x80;
 
-        r -= grassheight * 8;
-        g -= grassheight * 8;
-        b -= grassheight * 8;
-
         break;
 
     case MAP_TYPE_WATER:
-        return 0x102030FF;
+        r = 0x10;
+        g = 0x20;
+        b = 0x30;
+
+        break;
 
     case MAP_TYPE_HOLE:
-        return 0xE0E0E0FF;
+        r = 0xE0;
+        g = 0xE0;
+        b = 0xE0;
+
+        break;
 
     }
 
@@ -247,7 +255,7 @@ void renderfield(struct camera *camera, struct map *map)
             unsigned int type = gettype(map, cx, cy);
             float mapheight = map_getheight(map, cx, cy);
             float grassheight = getgrassheight(type, cx, cy);
-            float height = (mapheight + grassheight) * ((float)y / z) * 2;
+            float height = (mapheight + grassheight) * ((float)y / z);
             unsigned int ztop = (float)y - height;
 
             if (ztop < zbuffer[x])
