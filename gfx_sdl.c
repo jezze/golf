@@ -183,13 +183,13 @@ static void paintline(unsigned int *pixels, unsigned int offset, unsigned int pi
         unsigned char b = color >> 8;
 
         if (r > i)
-            r -= i;
+            r -= i / 4;
 
         if (g > i)
-            g -= i;
+            g -= i / 4;
 
         if (b > i)
-            b -= i;
+            b -= i / 4;
 
         pixels[offset] = (r << 24) | (g << 16) | (b << 8) | 0xFF;
 
