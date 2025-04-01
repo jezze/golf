@@ -178,18 +178,17 @@ static void paintsky(unsigned int *pixels)
 
 }
 
-static void paintfield(unsigned int *pixels, unsigned int color, unsigned int x, unsigned int y, unsigned int w, unsigned int h, int ztop, int zbottom)
+static void paintline(unsigned int *pixels, unsigned int offset, unsigned int pitch, unsigned int color, unsigned int count)
 {
 
-    unsigned int offset = (ztop * w) + x;
-    int z;
+    int i;
 
-    for (z = ztop; z < zbottom; z++)
+    for (i = 0; i < count; i++)
     {
 
         pixels[offset] = color;
 
-        offset += w;
+        offset += pitch;
 
     }
 
@@ -245,14 +244,15 @@ void renderfield(struct camera *camera, struct map *map)
             float mapheight = map_getheight(map, cx, cy);
             float grassheight = getgrassheight(type, cx, cy);
             float height = mapheight - grassheight;
-            unsigned int ztop = y - height;
+            unsigned int ztop = (float)y - 10 * height * ((float)y / z);
 
             if (ztop < zbuffer[x])
             {
 
                 unsigned int color = getcolor(type, cx, cy, grassheight);
+                unsigned int offset = (ztop * fieldrect.w) + x;
 
-                paintfield(pixels, color, x, y, fieldrect.w, fieldrect.h, ztop, zbuffer[x]);
+                paintline(pixels, offset, fieldrect.w, color, zbuffer[x] - ztop);
 
                 zbuffer[x] = ztop;
 
