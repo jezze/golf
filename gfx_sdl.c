@@ -108,8 +108,6 @@ static unsigned int getcolor(unsigned int type, float cx, float cy, float grassh
         g = 0x60;
         b = 0x00;
 
-        g -= grassheight * 4;
-
         if ((mx / 16) % 2 == 0)
             g -= 0x02;
 
@@ -123,8 +121,6 @@ static unsigned int getcolor(unsigned int type, float cx, float cy, float grassh
         g = 0x62;
         b = 0x00;
 
-        g -= grassheight * 2;
-
         break;
 
     case MAP_TYPE_ROUGH:
@@ -132,16 +128,12 @@ static unsigned int getcolor(unsigned int type, float cx, float cy, float grassh
         g = 0x50;
         b = 0x00;
 
-        g -= grassheight * 2;
-
         break;
 
     case MAP_TYPE_DEEPROUGH:
         r = 0x00;
         g = 0x40;
         b = 0x00;
-
-        g -= grassheight * 2;
 
         break;
 
@@ -186,7 +178,20 @@ static void paintline(unsigned int *pixels, unsigned int offset, unsigned int pi
     for (i = 0; i < count; i++)
     {
 
-        pixels[offset] = color;
+        unsigned char r = color >> 24;
+        unsigned char g = color >> 16;
+        unsigned char b = color >> 8;
+
+        if (r > i)
+            r -= i;
+
+        if (g > i)
+            g -= i;
+
+        if (b > i)
+            b -= i;
+
+        pixels[offset] = (r << 24) | (g << 16) | (b << 8) | 0xFF;
 
         offset += pitch;
 
@@ -242,7 +247,7 @@ void renderfield(struct camera *camera, struct map *map)
             unsigned int type = gettype(map, cx, cy);
             float mapheight = map_getheight(map, cx, cy);
             float grassheight = getgrassheight(type, cx, cy);
-            float height = (mapheight + grassheight) * ((float)y / z) * 10;
+            float height = (mapheight + grassheight) * ((float)y / z) * 2;
             unsigned int ztop = (float)y - height;
 
             if (ztop < zbuffer[x])
