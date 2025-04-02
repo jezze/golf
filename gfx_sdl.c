@@ -178,8 +178,26 @@ static void paintsky(void)
 
 }
 
-static void paintball(unsigned int *pixels)
+static void paintball(struct camera *camera, struct ball *ball)
 {
+
+    SDL_Rect rect;
+
+    float distx = (ball->x - camera->x);
+    float disty = (ball->y - camera->y);
+    float distance = sqrt(distx * distx + disty * disty);
+    float angle = atan2(disty, distx) + camera->angle;
+
+    distx = distance * cos(angle);
+    disty = distance * sin(angle);
+
+    rect.x = distx + SCREEN_WIDTH / 2;
+    rect.y = disty + SCREEN_HEIGHT;
+    rect.w = 20;
+    rect.h = 20;
+
+    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    SDL_RenderFillRect(renderer, &rect);
 
 }
 
@@ -291,7 +309,6 @@ void renderfield(struct camera *camera, struct map *map)
 
     }
 
-    paintball(pixels);
     SDL_UnlockTexture(field);
     SDL_RenderCopy(renderer, field, &fieldrect, &targetrect);
 
@@ -357,6 +374,7 @@ void gfx_render(struct camera *camera, struct map *map, struct ball *ball)
     SDL_RenderClear(renderer);
     paintsky();
     renderfield(camera, map);
+    paintball(camera, ball);
     renderminimap(camera, map);
     SDL_RenderPresent(renderer);
 
