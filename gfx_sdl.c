@@ -16,8 +16,10 @@ static SDL_Surface *layoutimg;
 static SDL_Surface *depthimg;
 static SDL_Texture *field;
 static SDL_Texture *minimap;
+static SDL_Texture *ball;
 static SDL_Rect fieldrect;
 static SDL_Rect minimaprect;
+static SDL_Rect ballrect;
 static int zbuffer[SCREEN_WIDTH];
 static unsigned int horizon;
 static unsigned char grass[GRASS_SIZE];
@@ -100,13 +102,6 @@ static unsigned int getcolor(unsigned int type, float cx, float cy, float grassh
     switch (type)
     {
 
-    case MAP_TYPE_NONE:
-        r = 0x40;
-        g = 0x80;
-        b = 0xA0;
-
-        break;
-
     case MAP_TYPE_FAIRWAY:
         r = 0x00;
         g = 0x60;
@@ -168,13 +163,23 @@ static unsigned int getcolor(unsigned int type, float cx, float cy, float grassh
 
 }
 
-static void paintsky(unsigned int *pixels)
+static void paintsky(void)
 {
 
-    unsigned int i;
+    SDL_Rect rect;
 
-    for (i = 0; i < fieldrect.w * (horizon + 1); i++)
-        pixels[i] = 0x4080A0FF;
+    rect.x = 0;
+    rect.y = 0;
+    rect.w = fieldrect.w;
+    rect.h = fieldrect.h;
+
+    SDL_SetRenderDrawColor(renderer, 0x40, 0x80, 0xA0, 0xFF);
+    SDL_RenderFillRect(renderer, &rect);
+
+}
+
+static void paintball(unsigned int *pixels)
+{
 
 }
 
@@ -212,6 +217,7 @@ void renderfield(struct camera *camera, struct map *map)
 
     unsigned int x;
     unsigned int y;
+    unsigned int i;
     unsigned int *pixels;
     int pitch;
     float plx;
@@ -233,7 +239,9 @@ void renderfield(struct camera *camera, struct map *map)
         zbuffer[x] = fieldrect.h;
 
     SDL_LockTexture(field, &fieldrect, (void **)&pixels, &pitch);
-    paintsky(pixels);
+
+    for (i = 0; i < fieldrect.w * fieldrect.h; i++)
+        pixels[i] = 0;
 
     for (y = fieldrect.h + 128; y > horizon; y--)
     {
@@ -253,20 +261,26 @@ void renderfield(struct camera *camera, struct map *map)
         {
 
             unsigned int type = gettype(map, cx, cy);
-            float mapheight = map_getheight(map, cx, cy);
-            float grassheight = getgrassheight(type, cx, cy);
-            float height = (mapheight + grassheight) * ((float)y / z);
-            unsigned int ztop = (float)y - height;
 
-            if (ztop < zbuffer[x])
+            if (type != MAP_TYPE_NONE)
             {
 
-                unsigned int color = getcolor(type, cx, cy, grassheight);
-                unsigned int offset = (ztop * fieldrect.w) + x;
+                float mapheight = map_getheight(map, cx, cy);
+                float grassheight = getgrassheight(type, cx, cy);
+                float height = (mapheight + grassheight) * ((float)y / z);
+                unsigned int ztop = (float)y - height;
 
-                paintline(pixels, offset, fieldrect.w, color, zbuffer[x] - ztop);
+                if (ztop < zbuffer[x])
+                {
 
-                zbuffer[x] = ztop;
+                    unsigned int color = getcolor(type, cx, cy, grassheight);
+                    unsigned int offset = (ztop * fieldrect.w) + x;
+
+                    paintline(pixels, offset, fieldrect.w, color, zbuffer[x] - ztop);
+
+                    zbuffer[x] = ztop;
+
+                }
 
             }
 
@@ -277,6 +291,7 @@ void renderfield(struct camera *camera, struct map *map)
 
     }
 
+    paintball(pixels);
     SDL_UnlockTexture(field);
     SDL_RenderCopy(renderer, field, &fieldrect, &targetrect);
 
@@ -340,6 +355,7 @@ void gfx_render(struct camera *camera, struct map *map, struct ball *ball)
 
     SDL_SetRenderDrawColor(renderer, 0x40, 0x80, 0xA0, 0xFF);
     SDL_RenderClear(renderer);
+    paintsky();
     renderfield(camera, map);
     renderminimap(camera, map);
     SDL_RenderPresent(renderer);
@@ -507,6 +523,10 @@ void gfx_init(unsigned int w, unsigned int h)
     minimaprect.y = 0;
     minimaprect.w = w / 8;
     minimaprect.h = h / 6;
+    ballrect.x = 0;
+    ballrect.y = 0;
+    ballrect.w = 128;
+    ballrect.h = 128;
 
     for (i = 0; i < GRASS_SIZE; i++)
         grass[i] = xorshift();
@@ -549,7 +569,19 @@ void gfx_init(unsigned int w, unsigned int h)
 
     }
 
+    SDL_SetTextureBlendMode(field, SDL_BLENDMODE_BLEND);
+
     minimap = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, minimaprect.w, minimaprect.h);
+
+    if (!minimap)
+    {
+
+        printf("Texture could not be created! SDL_Error: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
+
+    }
+
+    ball = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, ballrect.w, ballrect.h);
 
     if (!minimap)
     {
