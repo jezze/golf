@@ -188,8 +188,8 @@ static void paintball(struct camera *camera, struct ball *ball)
     float distance = sqrt(distx * distx + disty * disty);
     float angle = atan2(disty, distx) + camera->angle;
 
-    distx = distance * cos(angle);
-    disty = distance * sin(angle);
+    distx = cos(angle) * distance;
+    disty = sin(angle) * distance * ((fieldrect.h - horizon) / (ball->y / 3));
 
     rect.x = distx + SCREEN_WIDTH / 2;
     rect.y = disty + SCREEN_HEIGHT;
