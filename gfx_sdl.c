@@ -183,16 +183,12 @@ static void paintball(struct camera *camera, struct ball *ball)
 
     SDL_Rect rect;
 
-    float distx = (ball->x - camera->x);
-    float disty = (ball->y - camera->y);
-    float distance = sqrt(distx * distx + disty * disty);
-    float angle = atan2(disty, distx) + camera->angle;
+    float distx = camera->x;
+    float disty = camera->y;
+    float z = (camera->distance * camera->z) * (1.0 / disty);
 
-    distx = cos(angle) * distance;
-    disty = sin(angle) * distance * ((fieldrect.h - horizon) / (ball->y / 3));
-
-    rect.x = distx + SCREEN_WIDTH / 2;
-    rect.y = disty + SCREEN_HEIGHT;
+    rect.x = SCREEN_WIDTH / 2;
+    rect.y = z + horizon;
     rect.w = 20;
     rect.h = 20;
 
