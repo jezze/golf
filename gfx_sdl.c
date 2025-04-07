@@ -185,12 +185,14 @@ static void paintball(struct camera *camera, struct ball *ball)
 
     float distx = camera->x;
     float disty = camera->y;
-    float z = (camera->distance * camera->z) * (1.0 / disty);
+    float dist = sqrt(distx * distx + disty * disty);
+    float yfield = (camera->distance * camera->z) * (1.0 / disty);
+    float angle = atan2(disty, distx);
 
-    rect.x = SCREEN_WIDTH / 2;
-    rect.y = z + horizon;
     rect.w = 20;
     rect.h = 20;
+    rect.x = SCREEN_WIDTH / 2;
+    rect.y = ((camera->cosphi * yfield)) + horizon - rect.h;
 
     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderFillRect(renderer, &rect);
@@ -260,12 +262,12 @@ void renderfield(struct camera *camera, struct map *map)
     for (y = fieldrect.h + 128; y > horizon; y--)
     {
 
-        float z = (camera->distance * camera->z) / (y - horizon);
+        float yfield = (camera->distance * camera->z) / (y - horizon);
 
-        plx = (camera->cosphi * -z) - (camera->sinphi * z);
-        ply = (camera->sinphi * z) - (camera->cosphi * z);
-        prx = (camera->cosphi * z) - (camera->sinphi * z);
-        pry = (camera->sinphi * -z) - (camera->cosphi * z);
+        plx = (camera->cosphi * -yfield) - (camera->sinphi * yfield);
+        ply = (camera->sinphi * yfield) - (camera->cosphi * yfield);
+        prx = (camera->cosphi * yfield) - (camera->sinphi * yfield);
+        pry = (camera->sinphi * -yfield) - (camera->cosphi * yfield);
         dx = (prx - plx) / fieldrect.w;
         dy = (pry - ply) / fieldrect.w;
         cx = plx + camera->x;
@@ -281,7 +283,7 @@ void renderfield(struct camera *camera, struct map *map)
 
                 float mapheight = map_getheight(map, cx, cy);
                 float grassheight = getgrassheight(type, cx, cy);
-                float height = (mapheight + grassheight) * ((float)y / z);
+                float height = (mapheight + grassheight) * ((float)y / yfield);
                 unsigned int ztop = (float)y - height;
 
                 if (ztop < zbuffer[x])
