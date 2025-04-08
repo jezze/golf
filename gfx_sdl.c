@@ -186,7 +186,7 @@ static void paintball(struct camera *camera, struct ball *ball)
     float distx = camera->x;
     float disty = camera->y;
     float dist = sqrt(distx * distx + disty * disty);
-    float yfield = (camera->distance * camera->z) * (1.0 / disty);
+    float yfield = (camera->distance * camera->z) / disty;
     float angle = atan2(disty, distx);
 
     rect.w = 20;
@@ -259,10 +259,10 @@ void renderfield(struct camera *camera, struct map *map)
     for (i = 0; i < fieldrect.w * fieldrect.h; i++)
         pixels[i] = 0;
 
-    for (y = fieldrect.h + 128; y > horizon; y--)
+    for (y = fieldrect.h + 128; y > 0; y--)
     {
 
-        float yfield = (camera->distance * camera->z) / (y - horizon);
+        float yfield = (camera->distance * camera->z) / y;
 
         plx = (camera->cosphi * -yfield) - (camera->sinphi * yfield);
         ply = (camera->sinphi * yfield) - (camera->cosphi * yfield);
@@ -284,7 +284,7 @@ void renderfield(struct camera *camera, struct map *map)
                 float mapheight = map_getheight(map, cx, cy);
                 float grassheight = getgrassheight(type, cx, cy);
                 float height = (mapheight + grassheight) * ((float)y / yfield);
-                unsigned int ztop = (float)y - height;
+                unsigned int ztop = (float)y + horizon - height;
 
                 if (ztop < zbuffer[x])
                 {
