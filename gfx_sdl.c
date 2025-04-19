@@ -231,20 +231,12 @@ static void paintline(unsigned int *pixels, unsigned int offset, unsigned int pi
 void renderfield(struct camera *camera, struct map *map)
 {
 
+    SDL_Rect targetrect;
+    unsigned int *pixels;
+    int pitch;
     unsigned int x;
     unsigned int y;
     unsigned int i;
-    unsigned int *pixels;
-    int pitch;
-    float plx;
-    float ply;
-    float prx;
-    float pry;
-    float dx;
-    float dy;
-    float cx;
-    float cy;
-    SDL_Rect targetrect;
 
     targetrect.x = 0;
     targetrect.y = 0;
@@ -263,15 +255,14 @@ void renderfield(struct camera *camera, struct map *map)
     {
 
         float yfield = (camera->distance * camera->z) / y;
-
-        plx = (camera->cosphi * -yfield) - (camera->sinphi * yfield);
-        ply = (camera->sinphi * yfield) - (camera->cosphi * yfield);
-        prx = (camera->cosphi * yfield) - (camera->sinphi * yfield);
-        pry = (camera->sinphi * -yfield) - (camera->cosphi * yfield);
-        dx = (prx - plx) / fieldrect.w;
-        dy = (pry - ply) / fieldrect.w;
-        cx = plx + camera->x;
-        cy = ply + camera->y;
+        float plx = (camera->cosphi * -yfield) - (camera->sinphi * yfield);
+        float ply = (camera->sinphi * yfield) - (camera->cosphi * yfield);
+        float prx = (camera->cosphi * yfield) - (camera->sinphi * yfield);
+        float pry = (camera->sinphi * -yfield) - (camera->cosphi * yfield);
+        float dx = (prx - plx) / fieldrect.w;
+        float dy = (pry - ply) / fieldrect.w;
+        float cx = plx + camera->x;
+        float cy = ply + camera->y;
 
         for (x = 0; x < fieldrect.w; x++)
         {
